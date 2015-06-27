@@ -45,16 +45,13 @@ loadFixture = (args) ->
   # read them manually.
   # https://github.com/meteor/meteor/issues/1382
   assetPath = path.join(privateAssetsPath, assetPath)
-  console.log('assetPath', assetPath)
   asset = fs.readFileSync assetPath, 'utf8'
 
   # asset = Assets.getText(path)
   unless asset
     throw new Error('Fixture not found at path: ' + assetPath)
 
-  console.log('asset!!!!', asset)
   fixture = parseFixtureAsset(asset, assetPath)
-  console.log('fixture!!!!', fixture)
 
   _.each fixture, (docs, collectionId) ->
     isUserCollection = collectionId == 'users'
@@ -90,7 +87,6 @@ parseFixtureAsset = (asset, assetPath) ->
   if extension == 'json'
     JSON.parse(asset)
   else if _.contains(['yml', 'yaml'], extension)
-    console.log('parsing a YAML file')
     try
       YAML.safeLoad(asset)
     catch e
@@ -104,10 +100,8 @@ parseFixtureAsset = (asset, assetPath) ->
 
 Meteor.methods
   'tests/resetDatabase': ->
-    console.log('tests/resetDatabase')
     resetDatabase()
     return true
   'tests/loadFixture': ->
-    console.log('tests/loadFixture')
     loadFixture.apply(@, arguments)
     return true
