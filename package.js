@@ -9,17 +9,12 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('METEOR@0.9.0');
 
-  Npm.depends({
-    "coffee-script": "1.9.3"
-  });
-
   api.use([
     'coffeescript',
     'underscore',
     'aramk:utility@0.8.5',
     'aramk:q@1.0.1_1',
     'sanjo:jasmine@0.14.0',
-    'udondan:yml'
   ]);
   api.imply(['sanjo:jasmine']);
 
