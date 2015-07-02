@@ -3,6 +3,7 @@ return unless Velocity?
 # jasmine.DEFAULT_TIMEOUT_INTERVAL = jasmine.getEnv().defaultTimeoutInterval = 20000
 
 Logger.setLevel('debug')
+global = @
 
 TestUtils =
   
@@ -24,15 +25,16 @@ TestUtils =
       df.promise
     queue.add -> TestUtils.resetDatabase()
     queue.waitForAll().then(
-      =>
+      Meteor.bindEnvironment =>
         Logger.info('Set up TestUtils')
         @_isInit = true
         # If an onReady() hook was used, wait until it is complete.
         Q.when(@_config.onReady?()).then => @_readyDf.resolve()
-      (err) =>
+      Meteor.bindEnvironment (err) =>
         Logger.info('Failed to set up TestUtils')
         @_readyDf.reject()
     )
+    if args.done then @_readyDf.promise.fin(args.done)
     @_readyDf.promise
 
   loadFixture: (args) ->
@@ -74,3 +76,18 @@ TestUtils =
     df.promise
 
   ready: -> @_readyDf.promise
+
+  chai: Package['practicalmeteor:chai']
+
+  bindEnvironment: _.once ->
+    if Meteor.isServer && global.it?
+      # Patch the `it` method to ensure the Meteor environment is bound on the server.
+      global.it = _.wrap global.it, ->
+        args = _.toArray(arguments)
+        console.log('it args', args)
+        oldIt = args.shift()
+        if Types.isFunction(args[1])
+          console.log('args[1]', args[1].toString())
+          args[1] = Meteor.bindEnvironment(args[1])
+        console.log('final args', args)
+        oldIt.apply(@, args)

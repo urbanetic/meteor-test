@@ -16,6 +16,7 @@ Package.onUse(function(api) {
     'aramk:q@1.0.1_1',
     'sanjo:jasmine@0.14.0',
   ]);
+  api.use(['practicalmeteor:chai@2.1.0_1'], {weak: true});
   api.imply(['sanjo:jasmine']);
 
   api.export([
