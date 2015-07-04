@@ -1,8 +1,5 @@
 return unless Velocity?
 
-# jasmine.DEFAULT_TIMEOUT_INTERVAL = jasmine.getEnv().defaultTimeoutInterval = 20000
-
-Logger.setLevel('debug')
 global = @
 
 TestUtils =
@@ -14,6 +11,7 @@ TestUtils =
   config: (args) ->
     unless args? then return @_config
     if @_config then throw new Error('TestUtils.config() already called.')
+    Logger.setLevel('debug')
     @_readyDf = Q.defer()
     @_config = Setter.merge {}, args
     Logger.info('Setting up TestUtils...')
