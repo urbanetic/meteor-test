@@ -14,18 +14,18 @@ Package.onUse(function(api) {
     'underscore',
     'aramk:utility@0.8.5',
     'aramk:q@1.0.1_1',
-    'sanjo:jasmine@0.14.0',
+    'sanjo:jasmine@0.19.0'
   ]);
-  api.use(['practicalmeteor:chai@2.1.0_1'], {weak: true});
+  //api.use(['practicalmeteor:chai@2.1.0_1'], {weak: true});
   api.imply(['sanjo:jasmine']);
 
   api.export([
     'TestUtils'
   ], ['client', 'server']);
   api.addFiles([
-    'src/common/TestUtils.coffee',
+    'src/common/TestUtils.coffee'
   ], ['client', 'server']);
   api.addFiles([
-    'src/server/TestUtils.coffee',
+    'src/server/TestUtils.coffee'
   ], ['server']);
 });
