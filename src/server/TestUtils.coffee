@@ -32,13 +32,11 @@ loadFixture = (args) ->
     fixtures = {}
     fixtures[args.name] = Fixtures[args.type][args.name]
   else fixtures = Fixtures[args.type]
-  Logger.debug 'fixtures', fixtures
 
   unless fixtures then throw new Error "Test fixtures: No fixture loaded with name '#{args.type}'"
 
   # Allow the fixtures file to specify a collection, but default to the type.
   collectionId = Fixtures[args.type]._collectionId ? args.type
-  Logger.debug 'collectionId', collectionId
 
   isUserCollection = collectionId == 'users'
   if isUserCollection then collection = Meteor.users
@@ -46,39 +44,33 @@ loadFixture = (args) ->
   unless collection then throw new Error "Test fixtures: Collection not found: #{collectionId}"
 
   # Create each fixture, skipping any private properties of the Fixture object (starting with _).
-  Logger.debug 'start loop'
   for name, doc of fixtures when !name.startsWith('_')
-    Logger.debug 'start name', name
     # If it's a user, set the password correctly
     if isUserCollection
       password = doc.password
       delete doc.password
-      doc._id = (collection.direct ? collection).insert(doc)
+      doc._id = collection.insert(doc)
       Accounts.setPassword(doc._id, password)
     # Otherwise just insert.
-    else
-      Logger.debug 'inserting'
-      try
-        doc._id = (collection.direct ? collection).insert(doc)
-      catch e
-        Logger.error 'error', e
-      Logger.debug 'inserted ', doc._id
+    else doc._id = collection.insert(doc)
 
     # If it's a project, insert its entities.
     if collection == Projects
       for entity in doc.entities
         entity.projectId = doc._id
-        (Entities.direct ? Entities).insert(entity)
-      Logger.debug "Test fixtures: Inserted #{doc.entities.length} entities in project #{doc._id}"
+        Entities.insert(entity)
+      Logger.debug "Test fixtures: Inserted #{_.size doc.entities} entities in project #{doc._id}"
 
-  Logger.debug "Test fixtures: Inserted #{fixtures.length} #{collectionId}"
+    # Replace the fixture with the current, post-hook version from the database.
+    fixtures[name] = collection.findOne(doc._id)
+
+  Logger.debug "Test fixtures: Inserted #{_.size fixtures} #{collectionId}"
   if args.name then fixtures[args.name] else fixtures
 
-# Attach the server-only methods to the TestUtils object.
-_.extend TestUtils,
-  _server:
-    resetDatabase: resetDatabase
-    loadFixture: loadFixture
+# Attach the synchronous server-only methods to the TestUtils object.
+Setter.merge TestUtils,
+  resetDatabase: resetDatabase
+  loadFixture: loadFixture
 
 Meteor.methods
   'tests/resetDatabase': ->

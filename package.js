@@ -14,7 +14,7 @@ Package.onUse(function(api) {
     'underscore',
     'aramk:utility@0.8.5',
     'aramk:q@1.0.1_1',
-    'sanjo:jasmine@0.19.0'
+    'sanjo:jasmine@0.18.0'
   ]);
   //api.use(['practicalmeteor:chai@2.1.0_1'], {weak: true});
   api.imply(['sanjo:jasmine']);

@@ -93,3 +93,16 @@ TestUtils =
   ready: -> @_readyDf.promise
 
   chai: Package['practicalmeteor:chai']
+
+  bindEnvironment: _.once ->
+    if Meteor.isServer && global.it?
+      # Patch the `it` method to ensure the Meteor environment is bound on the server.
+      global.it = _.wrap global.it, ->
+        args = _.toArray(arguments)
+        console.log('it args', args)
+        oldIt = args.shift()
+        if Types.isFunction(args[1])
+          console.log('args[1]', args[1].toString())
+          args[1] = Meteor.bindEnvironment(args[1])
+        console.log('final args', args)
+        oldIt.apply(@, args)
