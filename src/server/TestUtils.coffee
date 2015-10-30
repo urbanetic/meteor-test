@@ -1,13 +1,17 @@
 return unless process.env.IS_MIRROR
 
+# Deletes everything from the given test collection.
+resetCollection = (collection) ->
+  ids = _.pluck collection.find({}, {_id: 1}).fetch(), '_id'
+  Collections.removeAllDocs(collection)
+  if ids.length
+    Logger.debug "Removed docs #{ids} in collection #{Collections.getName(collection)}"
+
 # Deletes everything from the test database.
 resetDatabase = ->
   collections = CollectionUtils.getAll().concat(Meteor.users)
   for collection in collections
-    ids = _.pluck collection.find({}, {_id: 1}).fetch(), '_id'
-    Collections.removeAllDocs(collection)
-    if ids.length
-      Logger.debug "Removed docs #{ids} in collection #{Collections.getName(collection)}"
+    resetCollection(collection)
 
 # Parsers the `args` object from whatever form it is given in, and returns an object with all
 # properties explicitly defined.
@@ -45,6 +49,10 @@ loadFixture = (args) ->
 
   # Create each fixture, skipping any private properties of the Fixture object (starting with _).
   for name, doc of fixtures when !name.startsWith('_')
+    if doc._id? and collection.findOne(doc._id)
+      Logger.debug "FIXTURES: Document with ID #{doc._id} already exists, removing..."
+      collection.remove(doc._id)
+
     Logger.debug "FIXTURES: Inserting #{args.type} #{name}..."
     # If it's a user, set the password correctly
     if isUserCollection
@@ -70,12 +78,16 @@ loadFixture = (args) ->
 
 # Attach the synchronous server-only methods to the TestUtils object.
 Setter.merge TestUtils,
+  resetCollection: resetCollection
   resetDatabase: resetDatabase
   loadFixture: loadFixture
 
 Meteor.methods
   'tests/resetDatabase': ->
     resetDatabase()
+    return true
+  'tests/resetCollection': (name) ->
+    resetCollection(Collections.get(name))
     return true
   'tests/loadFixture': ->
     @unblock()
