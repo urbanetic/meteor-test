@@ -25,7 +25,7 @@ loadFixture = (args) ->
     return
 
   args = _parseFixtureArgs args
-  Logger.debug('Test fixtures: Loading fixture:', args)
+  Logger.debug('FIXTURES: Loading fixture:', args)
 
   # If only a single fixture is requested, wrap it in an array anyway.
   if args.name
@@ -33,7 +33,7 @@ loadFixture = (args) ->
     fixtures[args.name] = Fixtures[args.type][args.name]
   else fixtures = Fixtures[args.type]
 
-  unless fixtures then throw new Error "Test fixtures: No fixture loaded with name '#{args.type}'"
+  unless fixtures then throw new Error "FIXTURES: No fixture loaded with name '#{args.type}'"
 
   # Allow the fixtures file to specify a collection, but default to the type.
   collectionId = Fixtures[args.type]._collectionId ? args.type
@@ -41,10 +41,11 @@ loadFixture = (args) ->
   isUserCollection = collectionId == 'users'
   if isUserCollection then collection = Meteor.users
   else collection = Collections.get Strings.toTitleCase(collectionId)
-  unless collection then throw new Error "Test fixtures: Collection not found: #{collectionId}"
+  unless collection then throw new Error "FIXTURES: Collection not found: #{collectionId}"
 
   # Create each fixture, skipping any private properties of the Fixture object (starting with _).
   for name, doc of fixtures when !name.startsWith('_')
+    Logger.debug "FIXTURES: Inserting #{args.type} #{name}..."
     # If it's a user, set the password correctly
     if isUserCollection
       password = doc.password
@@ -59,12 +60,12 @@ loadFixture = (args) ->
       for entity in doc.entities
         entity.projectId = doc._id
         Entities.insert(entity)
-      Logger.debug "Test fixtures: Inserted #{_.size doc.entities} entities in project #{doc._id}"
+      Logger.debug "FIXTURES: Inserted #{_.size doc.entities} entities in project #{doc._id}"
 
     # Replace the fixture with the current, post-hook version from the database.
     fixtures[name] = collection.findOne(doc._id)
 
-  Logger.debug "Test fixtures: Inserted #{_.size fixtures} #{collectionId}"
+  Logger.debug "FIXTURES: Inserted #{_.size fixtures} #{collectionId}"
   if args.name then fixtures[args.name] else fixtures
 
 # Attach the synchronous server-only methods to the TestUtils object.
