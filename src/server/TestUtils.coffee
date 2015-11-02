@@ -53,18 +53,19 @@ loadFixture = (args) ->
       Logger.debug "FIXTURES: Document with ID #{doc._id} already exists, removing..."
       collection.remove(doc._id)
 
+    # If it's a project, add the author.
+    if collection == Projects then doc.author = args.userId
+
     Logger.debug "FIXTURES: Inserting #{args.type} #{name}..."
     # If it's a user, set the password correctly
     if isUserCollection
-      password = doc.password
+      doc._id = Accounts.createUser doc
       delete doc.password
-      doc._id = collection.insert(doc)
-      Accounts.setPassword(doc._id, password)
     # Otherwise just insert.
     else doc._id = collection.insert(doc)
 
     # If it's a project, insert its entities.
-    if collection == Projects
+    if collection == Projects and doc.entities?
       for entity in doc.entities
         entity.projectId = doc._id
         Entities.insert(entity)
