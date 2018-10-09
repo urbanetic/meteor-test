@@ -7,14 +7,14 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('METEOR@0.9.0');
+  api.versionsFrom('METEOR@1.6.1');
 
   api.use([
     'coffeescript',
     'underscore',
     'aramk:q@1.0.1_1',
     'sanjo:jasmine@0.18.0',
-    'urbanetic:utility@1.2.0'
+    'urbanetic:utility@2.0.1'
   ]);
   //api.use(['practicalmeteor:chai@2.1.0_1'], {weak: true});
   api.imply(['sanjo:jasmine']);
